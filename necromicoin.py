@@ -4,11 +4,24 @@ from typing import Dict, Tuple, List
 import hashlib
 import time
 
+from Crypto.Hash import SHA
+
 class Transaction:
     def __init__(self, recipient_key, amount, sender_key):
         self._recipient_key = recipient_key
         self._amount = amount
         self._sender_key = sender_key
+
+    def compute_hash(self):
+        h = SHA.new()
+        h.update(self._recipient_key.exportKey('DER'))
+        h.update(str(self._amount).encode('UTF-8'))
+        h.update(self._sender_key.exportKey('DER'))
+        return h
+
+    def verify(self, signature):
+        h = self.compute_hash()
+        return self._sender_key.verify(h, signature)
 
 class Block:
     def __init__(self, block_num, transactions, timestamp, prev_block_hash):
@@ -47,7 +60,7 @@ class Blockchain:
     def verify_amount(amount):
         return amount > 0
 
-    def verify_timestamp(self, timestamp)
+    def verify_timestamp(self, timestamp):
         return self._blocks[-1].timestamp < timestamp < int(time.time())
 
     def verify_transaction(self, transaction):
@@ -56,7 +69,7 @@ class Blockchain:
 
     def verify_block(self, block):
         # check all the fields in a candidate block
-        if block._block_num != self._blocks[-1]._block_num + 1
+        if block._block_num != self._blocks[-1]._block_num + 1:
             print("Candidate block FAILED due to invalid: block_num")
             return False
         for transaction in block._transactions:
@@ -66,11 +79,11 @@ class Blockchain:
         if not verify_timestamp(block._timestamp):
                 print("Candidate block FAILED due to invalid: time_stamp")
                 return False
-        if block._prev_block_hash != self._blocks[-1].compute_hash()
+        if block._prev_block_hash != self._blocks[-1].compute_hash():
             print("Candidate block FAILED due to invalid: prev_block_hash")
             return False
         # finally, if all else works, check hash
-        hash_limit = 
+        # hash_limit = 
         if block.compute_hash() < this.get_current_hash_difficulty():
             print("Candidate block FAILED due to invalid: hash_difficulty")
             return False
